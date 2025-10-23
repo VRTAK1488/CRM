@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Клиент — Vonyuchiy Veter CRM</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Vonyuchiy Veter CRM</h2>
+        <p id="userRole"></p>
+      </div>
+      <ul class="nav-links">
+        <li><a href="home.html">Главная</a></li>
+        <li><a href="leads.html">Лиды</a></li>
+        <li><a href="reminders.html">Напоминания</a></li>
+        <li id="adminLink" style="display:none;"><a href="admin.html">Админка</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div class="header">
+        <h1 id="clientName">—</h1>
+        <button class="logout-btn" onclick="window.location.href='leads.html'">Назад</button>
+      </div>
+
+      <div class="client-card">
+        <div class="section">
+          <div class="section-title">Основная информация</div>
+          <div class="form-group">
+            <label>Имя и фамилия</label>
+            <input type="text" id="clientNameInput" onchange="saveField('name', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="clientEmail" onchange="saveField('email', this.value)">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('clientEmail').value)">Копировать</button>
+          </div>
+          <div class="form-group">
+            <label>Телефон</label>
+            <input type="tel" id="clientPhone" onchange="saveField('phone', this.value)">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('clientPhone').value)">Копировать</button>
+          </div>
+          <div class="form-group">
+            <label>Страна</label>
+            <input type="text" id="clientCountry" onchange="saveField('country', this.value)">
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Дополнительно</div>
+          <div class="form-group">
+            <label>Источник (аффилиатор)</label>
+            <input type="text" id="clientSource" onchange="saveField('source', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Статус</label>
+            <select id="clientStatus" onchange="saveField('status', this.value)">
+              <option value="new">New</option>
+              <option value="call-back">Call Back</option>
+              <option value="no-answer">No Answer</option>
+              <option value="contacted">Contacted</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Напоминание</label>
+            <input type="datetime-local" id="clientReminder" onchange="saveField('reminder', this.value)">
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Комментарии</div>
+          <div class="form-group">
+            <textarea id="commentText" placeholder="Ваш комментарий..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="addComment()">Добавить</button>
+          <div id="commentsList" style="margin-top: 16px;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    let clientId, currentUser;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initStorage();
+      currentUser = localStorage.getItem('user');
+      clientId = new URLSearchParams(window.location.search).get('id');
+      if (!clientId) return window.location.href = 'leads.html';
+
+      const client = getClientById(clientId);
+      if (!client) return window.location.href = 'leads.html';
+
+      document.getElementById('clientName').textContent = client.name || '—';
+      document.getElementById('clientNameInput').value = client.name || '';
+      document.getElementById('clientEmail').value = client.email || '';
+      document.getElementById('clientPhone').value = client.phone || '';
+      document.getElementById('clientCountry').value = client.country || '';
+      document.getElementById('clientSource').value = client.source || '';
+      document.getElementById('clientStatus').value = client.status || 'new';
+      if (client.reminder) {
+        document.getElementById('clientReminder').value = client.reminder;
+      }
+
+      loadComments();
+    });
+
+    function saveField(field, value) {
+      updateClient(clientId, { [field]: value });
+    }
+
+    function addComment() {
+      const text = document.getElementById('commentText').value.trim();
+      if (text) {
+        addCommentToClient(clientId, text, currentUser);
+        document.getElementById('commentText').value = '';
+        loadComments();
+      }
+    }
+
+    function addCommentToClient(clientId, text, author) {
+      const all = JSON.parse(localStorage.getItem('comments') || '{}');
+      if (!all[clientId]) all[clientId] = [];
+      all[clientId].push({
+        id: Date.now(),
+        text,
+        author,
+        date: new Date().toLocaleString()
+      });
+      localStorage.setItem('comments', JSON.stringify(all));
+    }
+
+    function loadComments() {
+      const comments = getComments(clientId);
+      const container = document.getElementById('commentsList');
+      container.innerHTML = comments.map(c => `
+        <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; margin:12px 0;">
+          <strong>${c.author}</strong> — ${c.date}<br>
+          ${c.text}
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Напоминания — Vonyuchiy Veter CRM</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Vonyuchiy Veter CRM</h2>
+        <p id="userRole"></p>
+      </div>
+      <ul class="nav-links">
+        <li><a href="home.html">Главная</a></li>
+        <li><a href="leads.html">Лиды</a></li>
+        <li><a href="reminders.html" class="active">Напоминания</a></li>
+        <li id="adminLink" style="display:none;"><a href="admin.html">Админка</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div class="header">
+        <h1>Напоминания</h1>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Клиент</th>
+              <th>Менеджер</th>
+              <th>Напоминание</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody id="remindersTable"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initStorage();
+      const user = localStorage.getItem('user');
+      const role = localStorage.getItem('role');
+      const clients = getRemindersForUser(user, role);
+
+      const tbody = document.getElementById('remindersTable');
+      tbody.innerHTML = clients.map(c => `
+        <tr>
+          <td><a href="client-card.html?id=${c.id}" style="color:var(--primary);">${c.name}</a></td>
+          <td>${c.manager || '—'}</td>
+          <td>${new Date(c.reminder).toLocaleString()}</td>
+          <td><span class="status ${c.status || 'new'}">${c.status || 'New'}</span></td>
+        </tr>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

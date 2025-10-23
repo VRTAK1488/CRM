@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Главная — Vonyuchiy Veter CRM</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Vonyuchiy Veter CRM</h2>
+        <p id="userRole"></p>
+      </div>
+      <ul class="nav-links">
+        <li><a href="home.html" class="active">Главная</a></li>
+        <li><a href="leads.html">Лиды</a></li>
+        <li><a href="reminders.html">Напоминания</a></li>
+        <li id="adminLink" style="display:none;"><a href="admin.html">Админка</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div class="header">
+        <h1>Панель управления</h1>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+      </div>
+
+      <div class="stats-grid" id="statsContainer"></div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initStorage();
+      const user = localStorage.getItem('user');
+      const role = localStorage.getItem('role');
+      const stats = document.getElementById('statsContainer');
+
+      if (role === 'manager') {
+        const clients = getClients().filter(c => c.manager === user);
+        const todayReminders = getTodaysReminders(user, role).length;
+        stats.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">Ваши лиды</div>
+            <div class="stat-value">${clients.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Напоминаний сегодня</div>
+            <div class="stat-value">${todayReminders}</div>
+          </div>
+        `;
+      } else {
+        const managers = getUsers().filter(u => u.role === 'manager').length;
+        const allReminders = getRemindersForUser(user, role).length;
+        stats.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">Менеджеров</div>
+            <div class="stat-value">${managers}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Активных напоминаний</div>
+            <div class="stat-value">${allReminders}</div>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
